@@ -1,7 +1,11 @@
 import org.hibernate.cfg.annotations.ResultsetMappingSecondPass;
+import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by xuan on 2017/2/19 0019.
@@ -73,6 +77,50 @@ public class JDBCTest {
         verifyRight(student);
     }
 
+    public void testResultSetMetaData() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String sql = "select FlowID flowID, Type type, IDCard idCard" +
+                ", ExamCard examCard, StudentName studentName" +
+                ", Location location, Grade grade from examstudent";
+
+        try {
+            conn = JDBCTools.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+//            for (int i = 0; i < rsmd.getColumnCount(); i++) {
+//                String columnLabel = rsmd.getColumnLabel(i+1);
+//                System.out.println(columnLabel);
+//            }
+            Map<String, Object> values =
+                    new HashMap<>();
+            while (rs.next()) {
+                for (int i = 0; i < rsmd.getColumnCount(); i++) {
+                    String columnLabel = rsmd.getColumnLabel(i+1);
+                    Object columnValue = rs.getObject(columnLabel);
+                    values.put(columnLabel, columnValue);
+                }
+//                System.out.println(values);
+                Student student = new Student();
+                System.out.println(student.getFlowID());
+                Class clazz = Student.class;
+                for (Map.Entry<String, Object> entry: values.entrySet()) {
+                    Field field = clazz.getDeclaredField(entry.getKey());
+                    field.setAccessible(true);
+                    field.set(student, entry.getValue());
+                }
+                System.out.println(student.getFlowID());
+                values.clear();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JDBCTools.release(rs, pstmt, conn);
+        }
+    }
+
     public static void main(String[] args) {
         Student student = new Student();
 //        student.setExamCard("123987");
@@ -85,15 +133,6 @@ public class JDBCTest {
 //        student.setFlowID(14);
 //
 //        new JDBCTest().addStudent(student);
-        try {
-            new JDBCTest().testSQLInjection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
+        new JDBCTest().testResultSetMetaData();
     }
 }

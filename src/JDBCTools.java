@@ -1,6 +1,9 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -84,6 +87,51 @@ public class JDBCTools {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public <T> T get(Class clazz, String sql, Object ... args) {
+        T entity = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = getConnection();
+            pstmt = conn.prepareStatement(sql);
+            for (int i = 0; i < args.length; i++) {
+                pstmt.setObject(i+1, args[i]);
+            }
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                ResultSetMetaData rsmd = rs.getMetaData();
+                Map<String, Object> values =
+                        new HashMap<>();
+                for (int i = 0; i < rsmd.getColumnCount(); i++) {
+                    values.put(rsmd.getColumnLabel(i+1),
+                            rs.getObject(i));
+                }
+                entity = (T)clazz.newInstance();
+                for (Map.Entry<String, Object> entry: values.entrySet()) {
+                    Field field = clazz.getDeclaredField(entry.getKey());
+                    field.set(entity, entry.getValue());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } finally {
+            release(rs, pstmt, conn);
+        }
+
+        return entity;
     }
 
 }

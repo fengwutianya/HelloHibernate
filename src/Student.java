@@ -27,11 +27,11 @@ public class Student {
     }
 
     public String getExamCard() {
-        return ExamCard;
+        return examCard;
     }
 
     public void setExamCard(String examCard) {
-        ExamCard = examCard;
+        examCard = examCard;
     }
 
     public String getStudentName() {
@@ -61,15 +61,10 @@ public class Student {
     private int flowID;
     private int type;
     private String idCard;
-    private String ExamCard;
+    private String examCard;
     private String studentName;
     private String location;
     private int grade;
 
     public Student() {}
-
-    @Override
-    public String toString() {
-        return studentName + " IDCard:" + idCard;
-    }
 }
