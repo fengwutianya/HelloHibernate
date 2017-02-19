@@ -52,7 +52,7 @@ public class JDBCTools {
         }
     }
 
-    public void update(String sql) {
+    public static void update(String sql) {
         Connection conn = null;
         Statement stmt = null;
 
@@ -61,6 +61,7 @@ public class JDBCTools {
             stmt = conn.createStatement();
             stmt.executeUpdate(sql);
         } catch (Exception e) {
+            e.printStackTrace();
             release(null, stmt, conn);
         }
     }
