@@ -11,6 +11,7 @@ public class HelloJDBC {
         String url = "jdbc:mysql://localhost:3306/javademo?"
                 + "user=root&password=12301230s&userUnicode=true&characterEncoding=UTF8";
         Connection conn = null;
+        Statement stmt = null;
         String sql = null;
         //加载驱动到DriverManager
         try {
@@ -18,7 +19,7 @@ public class HelloJDBC {
 //            System.out.println("成功加载mysql驱动");
             conn = DriverManager.getConnection(url);
 //            System.out.println("成功连接数据库");
-            Statement stmt = conn.createStatement();
+            stmt = conn.createStatement();
             sql = "create table student(NO char(20),name varchar(20),primary key(NO))";
             int result = stmt.executeUpdate(sql);// executeUpdate语句会返回一个受影响的行数，如果返回-1就没有成功
             if (result != -1) {
@@ -40,9 +41,15 @@ public class HelloJDBC {
             e.printStackTrace();
         } finally {
             try {
-                conn.close();
+                stmt.close();
             } catch (SQLException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
